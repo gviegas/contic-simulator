@@ -5,6 +5,7 @@
 #
 
 import json
+import struct
 from enum import Enum
 
 class Requests(Enum):
@@ -44,7 +45,13 @@ class Message:
                         print('{} not mapped'.format(s[1]))
                         break
                 elif s[0] == 'Data':
-                    d['data'] = s[1]
+                    p = s[1].split()
+                    b = bytearray([int(x, 16) for x in p])
+                    v = struct.unpack('f6B', b[:10])
+                    d['data'] = {
+                        'time': '20{0}-{1}-{2}-{3}-{4}-{5}'.format(*v[1:]),
+                        'value': v[0]
+                    }
             return json.dumps(d)
         else:
             print('Unknow type', type)

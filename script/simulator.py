@@ -14,7 +14,7 @@ import unit
 
 # TODO: move this
 UNITS = [
-    unit.Unit('a', 'localhost', 35412, {'lat': 1, 'lang': 2})
+    unit.Unit('a', 'localhost', 35412, {'lat': 1, 'lng': 2})
 ]
 
 DELAY = 5
