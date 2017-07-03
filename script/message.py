@@ -4,16 +4,16 @@
 # Created by Gustavo Viegas on 2017/06
 #
 
-import Enum from enum
+from enum import Enum
 
-def Commands(Enum):
+class Commands(Enum):
     """Available commands"""
     LS = 'ls'
     DEF = 'def'
     UNDEF = 'undef'
     CALL = 'call'
 
-def Message:
+class Message:
     """Message creation & manipulation"""
     def __init__(self):
         pass

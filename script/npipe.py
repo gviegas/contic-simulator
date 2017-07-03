@@ -4,6 +4,7 @@
 # Created by Gustavo Viegas on 2017/06
 #
 
+import time
 from os import path, mkfifo
 from threading import Thread
 
@@ -12,6 +13,8 @@ class Npipe:
     def __init__(self, fifo_w='in', fifo_r='out'):
         self._fifo_w = fifo_w
         self._fifo_r = fifo_r
+        self._fw = None
+        self._fr = None
         self._createPipes()
 
     @property
@@ -29,24 +32,15 @@ class Npipe:
             mkfifo(self.fifo_r)
 
     def readPipe(self):
-        with open(self.fifo_r) as f:
-            while True:
-                l = f.readline()
-                if not l:
-                    print('Pipe closed - done reading')
-                    break
-                print(l, end='')
+        if not self._fr:
+            self._fr = open(self.fifo_r, buffering=1)
+        return self._fr.readline()
 
-    def writePipe(self):
-        with open(self.fifo_w, 'w') as f:
-            while True:
-                f.write(input() + '\n')
-                f.flush()
+    def writePipe(self, data):
+        if not self._fw:
+            self._fw = open(self.fifo_w, 'w', buffering=1)
+        self._fw.write(data)
 
     def __str__(self):
         return 'write end at "{0}"\nread end at "{1}"'\
             .format(self.fifo_w, self.fifo_r)
-
-# pipe = Npipe()
-# Thread(target=pipe.readPipe).start()
-# pipe.writePipe()

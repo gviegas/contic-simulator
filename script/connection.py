@@ -19,7 +19,7 @@ class Connection:
         return self._at
 
     def _connect(self):
-        info = socket.getaddrinfo(self.at.value[0], self.at.value[1],
+        info = socket.getaddrinfo(self.at[0], self.at[1],
             socket.AF_UNSPEC, socket.SOCK_STREAM)
         for r in info:
             family, stype, proto, cname, addr = r
