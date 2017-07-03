@@ -6,21 +6,23 @@
 
 import threading
 import time
+import json
 import connection
 import message
 import npipe
+import unit
 
 # TODO: move this
-NAMES = [
-    {'name': 'a', 'node': 'localhost', 'port': 10101},
-    {'name': 'b', 'node': 'localhost', 'port': 10102},
-    {'name': 'c', 'node': 'localhost', 'port': 10103}
+UNITS = [
+    unit.Unit('a', 'localhost', 35412, {'lat': 1, 'lang': 2})
 ]
+
+DELAY = 5
 
 class Simulator:
     """The Contic Simulator module"""
     def __init__(self, host, port, fifo_w, fifo_r):
-        self._conn = None # connection.Connection(host, port)
+        self._conn = connection.Connection(host, port)
         self._pipe = npipe.Npipe(fifo_w, fifo_r)
         self._queue = []
         self._th1 = threading.Thread(target=self._controller)
@@ -34,34 +36,55 @@ class Simulator:
 
     def _receiver(self):
         while True:
-            l = self._pipe.readPipe()
-            # print('receiver', l, end='', flush=True)
-            self._queue.append(l)
+            l = self._pipe.readPipe().strip()
+            if not l:
+                time.sleep(3)
+                continue
+            elif l == '[OK]':
+                d = []
+                l = self._pipe.readPipe().strip()
+                while l != '[EOF]':
+                    d.append(l)
+                    l = self._pipe.readPipe().strip()
+                j = message.Message.json(message.Requests.UPDATE, d, UNITS)
+                self._queue.append(j)
+            elif l == '[ERR]':
+                d = {}
+                l = self._pipe.readPipe().strip()
+                while l != '[EOF]':
+                    e = l.split(':')
+                    d[e[0]] = e[1]
+                    l = self._pipe.readPipe().strip()
+                print('error:', d)
+            else:
+                print('exc: Invalid word');
 
-    def _sender(self):
+    def _sender(self, units=UNITS):
+        for u in units:
+            j = message.Message.json(message.Requests.CREATE, u)
+            self._conn.send(j.encode())
         while True:
             if self._queue:
                 e = self._queue.pop(0)
-                # toJson/err
-                # send to server
-                print('sender:', e, end='', flush=True)
+                b = e.encode()
+                self._conn.send(b)
             else:
                 time.sleep(3)
 
-    def _controller(self, names=NAMES):
+    def _controller(self, names=UNITS):
         c = ''
         for n in names:
-            c += 'def {name} node={node} port={port}\n'.format(**n)
+            c += 'def {0} node={1} port={2}\n'.format(n.name, n.node, n.port)
         if c:
             self._pipe.writePipe(c)
         while True:
             t = time.time()
             c = ''
             for n in names:
-                c += 'call fr ut02 {name}\n'.format(name=n['name'])
+                c += 'call fr ut02 {name}\n'.format(name=n.name)
             if c:
                 self._pipe.writePipe(c)
-            time.sleep(60 - (time.time() - t))
+            time.sleep(DELAY - (time.time() - t))
 
     def __str__(self):
         pass
