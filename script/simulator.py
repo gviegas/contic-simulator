@@ -22,6 +22,7 @@ class Simulator:
     def __init__(self, host, port, fifo_w, fifo_r):
         self._conn = None # connection.Connection(host, port)
         self._pipe = npipe.Npipe(fifo_w, fifo_r)
+        self._queue = []
         self._th1 = threading.Thread(target=self._controller)
         self._th2 = threading.Thread(target=self._sender)
         self._start()
@@ -34,20 +35,18 @@ class Simulator:
     def _receiver(self):
         while True:
             l = self._pipe.readPipe()
-            print('got', l, end='', flush=True)
-        """
-        enqueue
-        read pipe...
-        """
+            # print('receiver', l, end='', flush=True)
+            self._queue.append(l)
 
     def _sender(self):
-        """
-        wait push on queue
-        to JSON
-        send to server
-        wait push on queue...
-        """
-        pass
+        while True:
+            if self._queue:
+                e = self._queue.pop(0)
+                # toJson/err
+                # send to server
+                print('sender:', e, end='', flush=True)
+            else:
+                time.sleep(3)
 
     def _controller(self, names=NAMES):
         c = ''
@@ -55,13 +54,15 @@ class Simulator:
             c += 'def {name} node={node} port={port}\n'.format(**n)
         if c:
             self._pipe.writePipe(c)
-        self._pipe.writePipe('ls\n') # debug
-        """
-        set interval
-        wait interval
-        calls
-        wait interval...
-        """
+        while True:
+            t = time.time()
+            c = ''
+            for n in names:
+                c += 'call fr ut02 {name}\n'.format(name=n['name'])
+            if c:
+                self._pipe.writePipe(c)
+            time.sleep(60 - (time.time() - t))
+
     def __str__(self):
         pass
 
