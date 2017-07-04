@@ -14,10 +14,12 @@ import unit
 
 # TODO: move this
 UNITS = [
-    unit.Unit('a', 'localhost', 35412, {'lat': 1, 'lng': 2})
+    unit.Unit('a', 'localhost', 40100, {'lng': 51.650860, 'lat': -0.186010}),
+    unit.Unit('b', 'localhost', 40200, {'lng': 51.651066, 'lat': -0.185838}),
+    unit.Unit('c', 'localhost', 40300, {'lng': 51.651186, 'lat': -0.185613}),
 ]
 
-DELAY = 5
+DELAY = 20
 
 class Simulator:
     """The Contic Simulator module"""
@@ -75,6 +77,8 @@ class Simulator:
         c = ''
         for n in names:
             c += 'def {0} node={1} port={2}\n'.format(n.name, n.node, n.port)
+            # c = 'def {0} node={1} port={2}\n'.format(n.name, n.node, n.port)
+            # self._pipe.writePipe(c)
         if c:
             self._pipe.writePipe(c)
         while True:
@@ -82,6 +86,7 @@ class Simulator:
             c = ''
             for n in names:
                 c += 'call fr ut02 {name}\n'.format(name=n.name)
+                # c = 'call fr ut02 {name}\n'.format(name=n.name)
             if c:
                 self._pipe.writePipe(c)
             time.sleep(DELAY - (time.time() - t))

@@ -8,6 +8,8 @@ import json
 import struct
 from enum import Enum
 
+EOM = '\n'
+
 class Requests(Enum):
     """Requests to server"""
     CREATE = 'create'
@@ -31,7 +33,7 @@ class Message:
             d = {'request': Requests.CREATE.value}
             d['id'] = data.name
             d['coords'] = data.coords
-            return json.dumps(d)
+            return json.dumps(d)+EOM
         elif(type == Requests.UPDATE):
             d = {'request': Requests.UPDATE.value}
             for e in data:
@@ -52,7 +54,7 @@ class Message:
                         'time': '20{0}-{1}-{2}-{3}-{4}-{5}'.format(*v[1:]),
                         'value': v[0]
                     }
-            return json.dumps(d)
+            return json.dumps(d)+EOM
         else:
             print('Unknow type', type)
 
