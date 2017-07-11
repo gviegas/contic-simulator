@@ -59,8 +59,26 @@ class Message:
             print('Unknow type', type)
 
     @staticmethod
-    def command(type, params=None):
-        pass
+    def command(type, unit, params=None):
+        c = ''
+        if type == Commands.LS:
+            c = 'ls'
+            if params:
+                for v in params:
+                    c += ' ' + v
+        elif type == Commands.DEF:
+            c = 'def {0} node={1} port={2}'.format(unit.name, unit.node,
+                unit.port)
+        elif type == Commands.UNDEF and params:
+            c = 'undef'
+            for v in params:
+                c += ' ' + v
+        elif type == Commands.CALL and params:
+            c = 'call '
+            for v in params:
+                c += v + ' '
+            c += unit.name
+        return c + '\n'
 
     def __str__(self):
         pass

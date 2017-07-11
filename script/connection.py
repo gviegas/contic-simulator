@@ -42,8 +42,8 @@ class Connection:
             try:
                 s = self._socket.sendall(msg)
             except OSError as ex:
-                # TODO
-                return s
+                print('ERR: send', ex)
+                return -1
 
     def recv(self):
         if self._socket:
