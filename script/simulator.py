@@ -8,8 +8,8 @@ import threading
 import time
 import json
 import connection
-import message
 import npipe
+from message import Message, Requests, Commands
 from constants import DELAY, UNITS
 
 class Simulator:
@@ -39,7 +39,7 @@ class Simulator:
                 while l != '[EOF]':
                     d.append(l)
                     l = self._pipe.readPipe().strip()
-                j = message.Message.json(message.Requests.UPDATE, d, units)
+                j = Message.json(Requests.UPDATE, d, units)
                 self._queue.append(j)
             elif l == '[ERR]':
                 d = {}
@@ -54,7 +54,7 @@ class Simulator:
 
     def _sender(self, units=UNITS):
         for u in units:
-            j = message.Message.json(message.Requests.CREATE, u)
+            j = Message.json(Requests.CREATE, u)
             self._conn.send(j.encode())
         while True:
             if self._queue:
@@ -69,13 +69,13 @@ class Simulator:
             return
         c = ''
         for u in units:
-            c += 'def {0} node={1} port={2}\n'.format(u.name, u.node, u.port)
+            c += Message.command(Commands.DEF, u)
         self._pipe.writePipe(c)
         while True:
             t = time.time()
             c = ''
             for u in units:
-                c += 'call fr ut02 {name}\n'.format(name=u.name)
+                c += Message.command(Commands.CALL, u, ['fr', 'ut02'])
             self._pipe.writePipe(c)
             time.sleep(DELAY - (time.time() - t))
 
